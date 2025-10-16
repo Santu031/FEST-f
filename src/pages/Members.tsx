@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, UserPlus, Download, Facebook, Instagram, Youtube, Loader2 } from "lucide-react";
+import { Search, Filter, UserPlus, Download, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import MemberCard from "@/components/MemberCard";
 import MemberDetailModal from "@/components/MemberDetailModal";
 import MemberFormDialog from "@/components/MemberFormDialog";
 import MemberCardSkeleton from "@/components/MemberCardSkeleton";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface Member {
   id: string;
@@ -108,7 +110,7 @@ const initialMembers: Member[] = [
 
 const ITEMS_PER_PAGE = 9;
 
-const Index = () => {
+const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -120,10 +122,9 @@ const Index = () => {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const [isAdmin] = useState(true); // Toggle this to show/hide admin features
-  const [maskPhone, setMaskPhone] = useState(true);
+  const [isAdmin] = useState(true);
+  const [maskPhone] = useState(true);
 
-  // Simulate initial data loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setMembers(initialMembers);
@@ -169,7 +170,6 @@ const Index = () => {
 
   const handleSaveMember = (memberData: Partial<Member>) => {
     if (editingMember) {
-      // Edit existing member
       setMembers(
         members.map((m) =>
           m.id === editingMember.id ? { ...m, ...memberData } : m
@@ -177,7 +177,6 @@ const Index = () => {
       );
       toast.success("Member updated successfully!");
     } else {
-      // Add new member
       const newMember: Member = {
         id: Date.now().toString(),
         ...memberData,
@@ -199,7 +198,7 @@ const Index = () => {
   const handleExportCSV = () => {
     const csv = [
       ["Name", "Role", "Email", "Phone", "Join Year", "Bio"],
-      ...members.map((m) => [
+      ...filteredMembers.map((m) => [
         m.name,
         m.role,
         m.email || "",
@@ -231,20 +230,12 @@ const Index = () => {
     setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
   };
 
-  const maskPhoneNumber = (phone: string) => {
-    if (!maskPhone || !phone) return phone;
-    // Show only last 4 digits: +91 98765 43210 -> +91 ******* 3210
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length > 4) {
-      return phone.slice(0, -4).replace(/\d/g, "*") + phone.slice(-4);
-    }
-    return phone;
-  };
-
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
+
       {/* Hero Header */}
-      <header className="bg-gradient-saffron text-white py-16 px-4 shadow-warm">
+      <header className="bg-gradient-saffron text-white py-16 px-4 shadow-warm mt-20">
         <div className="container mx-auto text-center space-y-4 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold">Our Members</h1>
           <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
@@ -255,11 +246,11 @@ const Index = () => {
       </header>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Stats */}
         {!isLoading && (
           <div className="mb-6 text-center text-sm text-muted-foreground animate-fade-in">
             Showing {visibleMembers.length} of {filteredMembers.length} members
-            {filteredMembers.length !== members.length && ` (filtered from ${members.length} total)`}
+            {filteredMembers.length !== members.length &&
+              ` (filtered from ${members.length} total)`}
           </div>
         )}
 
@@ -378,7 +369,6 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Load More Button */}
             {hasMore && (
               <div className="flex justify-center mt-8 animate-fade-in">
                 <Button
@@ -396,42 +386,6 @@ const Index = () => {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border mt-16 py-8">
-        <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex justify-center gap-6">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Facebook className="w-6 h-6" />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Instagram className="w-6 h-6" />
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Youtube className="w-6 h-6" />
-            </a>
-          </div>
-          <p className="text-muted-foreground">
-            © 2025 Baghat Sing Geleyar Balaga. All rights reserved.
-          </p>
-        </div>
-      </footer>
-
-      {/* Modals */}
       <MemberDetailModal
         member={selectedMember}
         open={detailModalOpen}
@@ -451,8 +405,10 @@ const Index = () => {
         onClose={() => setFormModalOpen(false)}
         onSave={handleSaveMember}
       />
+
+      <Footer />
     </div>
   );
 };
 
-export default Index;
+export default Members;
