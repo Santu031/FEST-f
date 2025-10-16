@@ -69,6 +69,7 @@ const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
           size="sm"
           className="flex-1 hover:bg-primary hover:text-primary-foreground transition-colors"
           onClick={onView}
+          aria-label={`View ${member.name}'s profile`}
         >
           <Eye className="w-4 h-4 mr-1" />
           View
@@ -78,6 +79,7 @@ const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
           size="sm"
           className="flex-1 hover:bg-secondary hover:text-secondary-foreground transition-colors"
           onClick={onEdit}
+          aria-label={`Edit ${member.name}'s profile`}
         >
           <Edit className="w-4 h-4 mr-1" />
           Edit
@@ -87,6 +89,7 @@ const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
           size="sm"
           onClick={onContact}
           className="hover:bg-accent hover:text-accent-foreground transition-colors"
+          aria-label={`Contact ${member.name}`}
         >
           <Mail className="w-4 h-4" />
         </Button>

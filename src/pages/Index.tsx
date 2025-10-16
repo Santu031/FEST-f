@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Search, Filter, UserPlus, Download, Facebook, Instagram, Youtube } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, UserPlus, Download, Facebook, Instagram, Youtube, Loader2 } from "lucide-react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import MemberCard from "@/components/MemberCard";
 import MemberDetailModal from "@/components/MemberDetailModal";
 import MemberFormDialog from "@/components/MemberFormDialog";
+import MemberCardSkeleton from "@/components/MemberCardSkeleton";
 
 interface Member {
   id: string;
@@ -104,15 +106,31 @@ const initialMembers: Member[] = [
   },
 ];
 
+const ITEMS_PER_PAGE = 9;
+
 const Index = () => {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [isAdmin] = useState(true); // Toggle this to show/hide admin features
+  const [maskPhone, setMaskPhone] = useState(true);
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMembers(initialMembers);
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const roles = Array.from(new Set(members.map((m) => m.role)));
   const years = Array.from(new Set(members.map((m) => m.joinYear))).sort(
@@ -121,13 +139,17 @@ const Index = () => {
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchTerm.toLowerCase());
+      member.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.role.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      member.bio.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesRole = roleFilter === "all" || member.role === roleFilter;
     const matchesYear =
       yearFilter === "all" || member.joinYear.toString() === yearFilter;
     return matchesSearch && matchesRole && matchesYear;
   });
+
+  const visibleMembers = filteredMembers.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredMembers.length;
 
   const handleViewMember = (member: Member) => {
     setSelectedMember(member);
@@ -202,6 +224,21 @@ const Index = () => {
     setSearchTerm("");
     setRoleFilter("all");
     setYearFilter("all");
+    setVisibleCount(ITEMS_PER_PAGE);
+  };
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
+  };
+
+  const maskPhoneNumber = (phone: string) => {
+    if (!maskPhone || !phone) return phone;
+    // Show only last 4 digits: +91 98765 43210 -> +91 ******* 3210
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length > 4) {
+      return phone.slice(0, -4).replace(/\d/g, "*") + phone.slice(-4);
+    }
+    return phone;
   };
 
   return (
@@ -218,6 +255,14 @@ const Index = () => {
       </header>
 
       <div className="container mx-auto px-4 py-12">
+        {/* Stats */}
+        {!isLoading && (
+          <div className="mb-6 text-center text-sm text-muted-foreground animate-fade-in">
+            Showing {visibleMembers.length} of {filteredMembers.length} members
+            {filteredMembers.length !== members.length && ` (filtered from ${members.length} total)`}
+          </div>
+        )}
+
         {/* Search and Filters */}
         <div className="bg-card rounded-xl shadow-gold p-6 mb-8 animate-slide-up">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -270,14 +315,16 @@ const Index = () => {
               <Filter className="w-4 h-4 mr-2" />
               Reset Filters
             </Button>
-            <Button
-              size="sm"
-              onClick={handleAddMember}
-              className="bg-gradient-saffron hover:opacity-90"
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Member
-            </Button>
+            {isAdmin && (
+              <Button
+                size="sm"
+                onClick={handleAddMember}
+                className="bg-gradient-saffron hover:opacity-90"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Member
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -291,24 +338,61 @@ const Index = () => {
         </div>
 
         {/* Members Grid */}
-        {filteredMembers.length === 0 ? (
-          <div className="text-center py-16">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <MemberCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : filteredMembers.length === 0 ? (
+          <div className="text-center py-16 animate-fade-in">
             <p className="text-xl text-muted-foreground">
               No members found matching your filters
             </p>
+            <Button
+              variant="outline"
+              onClick={handleResetFilters}
+              className="mt-4"
+            >
+              Clear Filters
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-scale-in">
-            {filteredMembers.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                onView={() => handleViewMember(member)}
-                onEdit={() => handleEditMember(member)}
-                onContact={() => handleContact(member)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-scale-in">
+              {visibleMembers.map((member, index) => (
+                <div
+                  key={member.id}
+                  style={{
+                    animationDelay: `${index * 0.05}s`,
+                  }}
+                  className="animate-fade-in"
+                >
+                  <MemberCard
+                    member={member}
+                    onView={() => handleViewMember(member)}
+                    onEdit={() => handleEditMember(member)}
+                    onContact={() => handleContact(member)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center mt-8 animate-fade-in">
+                <Button
+                  onClick={handleLoadMore}
+                  variant="outline"
+                  size="lg"
+                  className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  Load More Members
+                  <Loader2 className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -357,6 +441,8 @@ const Index = () => {
             handleEditMember(selectedMember);
           }
         }}
+        showContact={!maskPhone}
+        isAdmin={isAdmin}
       />
 
       <MemberFormDialog

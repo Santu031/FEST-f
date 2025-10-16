@@ -25,6 +25,8 @@ interface MemberDetailModalProps {
   open: boolean;
   onClose: () => void;
   onEdit: () => void;
+  showContact?: boolean;
+  isAdmin?: boolean;
 }
 
 const MemberDetailModal = ({
@@ -32,6 +34,8 @@ const MemberDetailModal = ({
   open,
   onClose,
   onEdit,
+  showContact = true,
+  isAdmin = true,
 }: MemberDetailModalProps) => {
   if (!member) return null;
 
@@ -79,7 +83,7 @@ const MemberDetailModal = ({
               </p>
 
               <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-2">
-                {member.email && (
+                {member.email && showContact && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="w-4 h-4 text-primary" />
                     <a
@@ -90,7 +94,7 @@ const MemberDetailModal = ({
                     </a>
                   </div>
                 )}
-                {member.phone && (
+                {member.phone && showContact && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="w-4 h-4 text-primary" />
                     <a
@@ -144,10 +148,12 @@ const MemberDetailModal = ({
             <X className="w-4 h-4 mr-2" />
             Close
           </Button>
-          <Button onClick={onEdit} className="bg-gradient-saffron hover:opacity-90">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
+          {isAdmin && (
+            <Button onClick={onEdit} className="bg-gradient-saffron hover:opacity-90">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
