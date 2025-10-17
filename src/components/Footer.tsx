@@ -64,14 +64,14 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground">Contact Us</h4>
             <div className="flex flex-col space-y-3">
               <a
-                href="tel:+919876543210"
+                href="tel:+91997243292"
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <Phone className="w-4 h-4" />
                 +91 99724 33292
               </a>
               <a
-                href="mailto:info@balagha.org"
+                href="mailto:santoshhiretanad292@gmail.com"
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <Mail className="w-4 h-4" />
