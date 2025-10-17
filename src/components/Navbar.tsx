@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAdmin, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,9 +27,9 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
-    { name: "Events", path: "/events" },
     { name: "Members", path: "/members" },
     { name: "Gallery", path: "/gallery" },
+    { name: "Sponsors", path: "/sponsors" },
     { name: "Contact", path: "/contact" },
   ];
 
@@ -69,13 +77,38 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Join Us Button */}
-          <Button
-            className="hidden lg:flex bg-gradient-gold hover:opacity-90 text-foreground font-semibold shadow-gold"
-            asChild
-          >
-            <Link to="/members">Join Us</Link>
-          </Button>
+          {/* Admin Login/Logout or Join Us Button */}
+          <div className="hidden lg:flex items-center gap-2">
+            {isAdmin ? (
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            ) : (
+              <>
+                <Button
+                  className="bg-gradient-gold hover:opacity-90 text-foreground font-semibold shadow-gold"
+                  asChild
+                >
+                  <Link to="/members">Join Us</Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  <Link to="/admin">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Admin
+                  </Link>
+                </Button>
+              </>
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -109,14 +142,40 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <Button
-                className="bg-gradient-gold hover:opacity-90 text-foreground font-semibold shadow-gold"
-                asChild
-              >
-                <Link to="/members" onClick={() => setIsMobileMenuOpen(false)}>
-                  Join Us
-                </Link>
-              </Button>
+              {isAdmin ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    className="bg-gradient-gold hover:opacity-90 text-foreground font-semibold shadow-gold"
+                    asChild
+                  >
+                    <Link to="/members" onClick={() => setIsMobileMenuOpen(false)}>
+                      Join Us
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Admin Login
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}

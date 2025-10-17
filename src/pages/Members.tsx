@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, UserPlus, Download, Loader2 } from "lucide-react";
+import { Search, Filter, UserPlus, Download, Loader2, RotateCcw } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAuth } from "@/contexts/AuthContext";
+import { api, type Member } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,96 +20,6 @@ import MemberCardSkeleton from "@/components/MemberCardSkeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-interface Member {
-  id: string;
-  name: string;
-  role: string;
-  bio: string;
-  joinYear: number;
-  photo?: string;
-  email?: string;
-  phone?: string;
-  responsibilities?: string[];
-}
-
-const initialMembers: Member[] = [
-  {
-    id: "1",
-    name: "Rajesh Kumar",
-    role: "Coordinator",
-    bio: "Leading the festival organization for over 10 years with dedication and devotion to Lord Ganesha.",
-    joinYear: 2014,
-    email: "rajesh@balagha.org",
-    phone: "+91 98765 43210",
-    responsibilities: [
-      "Overall festival coordination and planning",
-      "Managing volunteer teams",
-      "Liaison with local authorities and sponsors",
-      "Budget oversight and resource allocation",
-    ],
-  },
-  {
-    id: "2",
-    name: "Priya Sharma",
-    role: "Cultural Organizer",
-    bio: "Passionate about preserving traditional arts and organizing cultural programs for the community.",
-    joinYear: 2016,
-    email: "priya@balagha.org",
-    phone: "+91 98765 43211",
-    responsibilities: [
-      "Planning cultural events and performances",
-      "Coordinating with artists and performers",
-      "Managing stage setup and decorations",
-      "Organizing traditional rituals and ceremonies",
-    ],
-  },
-  {
-    id: "3",
-    name: "Amit Patel",
-    role: "Sound Lead",
-    bio: "Expert in audio systems and ensuring perfect sound quality for all devotional programs.",
-    joinYear: 2018,
-    email: "amit@balagha.org",
-    phone: "+91 98765 43212",
-    responsibilities: [
-      "Sound system setup and maintenance",
-      "Managing audio for all events",
-      "Coordinating with technical vendors",
-      "Ensuring quality of devotional music playback",
-    ],
-  },
-  {
-    id: "4",
-    name: "Sneha Desai",
-    role: "Volunteer",
-    bio: "Dedicated volunteer helping with daily operations and community engagement activities.",
-    joinYear: 2020,
-    email: "sneha@balagha.org",
-    phone: "+91 98765 43213",
-    responsibilities: [
-      "Assisting in daily festival operations",
-      "Managing volunteer schedules",
-      "Helping with crowd management",
-      "Supporting decoration and setup teams",
-    ],
-  },
-  {
-    id: "5",
-    name: "Vikram Singh",
-    role: "Logistics Manager",
-    bio: "Ensuring smooth operations by managing supplies, vendors, and logistical arrangements.",
-    joinYear: 2017,
-    email: "vikram@balagha.org",
-    phone: "+91 98765 43214",
-    responsibilities: [
-      "Managing supplies and inventory",
-      "Coordinating with vendors and suppliers",
-      "Transportation and delivery logistics",
-      "Ensuring timely availability of resources",
-    ],
-  },
-];
-
 const ITEMS_PER_PAGE = 9;
 
 const Members = () => {
@@ -122,15 +34,30 @@ const Members = () => {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const [isAdmin] = useState(true);
+  const { isAdmin } = useAuth();
   const [maskPhone] = useState(true);
 
+  // Load members from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMembers(initialMembers);
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    const fetchMembers = async () => {
+      try {
+        setIsLoading(true);
+        const data = await api.getMembers();
+        // Normalize IDs (MongoDB uses _id, we use id in frontend)
+        const normalizedData = data.map(m => ({
+          ...m,
+          id: m._id || m.id || '',
+        }));
+        setMembers(normalizedData);
+      } catch (error) {
+        console.error('Error fetching members:', error);
+        toast.error('Failed to load members. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMembers();
   }, []);
 
   const roles = Array.from(new Set(members.map((m) => m.role)));
@@ -168,23 +95,53 @@ const Members = () => {
     setFormModalOpen(true);
   };
 
-  const handleSaveMember = (memberData: Partial<Member>) => {
-    if (editingMember) {
-      setMembers(
-        members.map((m) =>
-          m.id === editingMember.id ? { ...m, ...memberData } : m
-        )
-      );
-      toast.success("Member updated successfully!");
-    } else {
-      const newMember: Member = {
-        id: Date.now().toString(),
-        ...memberData,
-      } as Member;
-      setMembers([...members, newMember]);
-      toast.success("Member added successfully!");
+  const handleSaveMember = async (memberData: Partial<Member>) => {
+    try {
+      if (editingMember) {
+        const updated = await api.updateMember(editingMember.id, memberData);
+        const normalizedUpdated = { ...updated, id: updated._id || updated.id || '' };
+        setMembers(members.map((m) => (m.id === normalizedUpdated.id ? normalizedUpdated : m)));
+        toast.success("Member updated successfully!");
+      } else {
+        const newMember = await api.createMember(memberData);
+        const normalizedNew = { ...newMember, id: newMember._id || newMember.id || '' };
+        setMembers([...members, normalizedNew]);
+        toast.success("Member added successfully!");
+      }
+      setFormModalOpen(false);
+    } catch (error) {
+      console.error('Error saving member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save member');
     }
-    setFormModalOpen(false);
+  };
+
+  const handleDeleteMember = async (memberId: string) => {
+    try {
+      await api.deleteMember(memberId);
+      setMembers(members.filter((m) => m.id !== memberId));
+      toast.success("Member deleted successfully!");
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete member');
+    }
+  };
+
+  const handleResetData = async () => {
+    if (confirm('Are you sure you want to reset all member data to default? This cannot be undone.')) {
+      try {
+        await api.resetMembers();
+        const data = await api.getMembers();
+        const normalizedData = data.map(m => ({
+          ...m,
+          id: m._id || m.id || '',
+        }));
+        setMembers(normalizedData);
+        toast.success("Member data reset to default!");
+      } catch (error) {
+        console.error('Error resetting members:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to reset members');
+      }
+    }
   };
 
   const handleContact = (member: Member) => {
@@ -307,14 +264,25 @@ const Members = () => {
               Reset Filters
             </Button>
             {isAdmin && (
-              <Button
-                size="sm"
-                onClick={handleAddMember}
-                className="bg-gradient-saffron hover:opacity-90"
-              >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Add Member
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  onClick={handleAddMember}
+                  className="bg-gradient-saffron hover:opacity-90"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add Member
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetData}
+                  className="hover:bg-destructive hover:text-destructive-foreground transition-colors border-destructive text-destructive"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset Data
+                </Button>
+              </>
             )}
             <Button
               variant="outline"
@@ -364,6 +332,7 @@ const Members = () => {
                     onView={() => handleViewMember(member)}
                     onEdit={() => handleEditMember(member)}
                     onContact={() => handleContact(member)}
+                    isAdmin={isAdmin}
                   />
                 </div>
               ))}

@@ -16,9 +16,10 @@ interface MemberCardProps {
   onView: () => void;
   onEdit: () => void;
   onContact: () => void;
+  isAdmin?: boolean;
 }
 
-const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
+const MemberCard = ({ member, onView, onEdit, onContact, isAdmin = false }: MemberCardProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -38,10 +39,10 @@ const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
               <img
                 src={member.photo}
                 alt={member.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-colors"
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-colors"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-saffron flex items-center justify-center text-white text-2xl font-bold border-4 border-primary/20 group-hover:border-primary/40 transition-colors">
+              <div className="w-32 h-32 rounded-full bg-gradient-saffron flex items-center justify-center text-white text-3xl font-bold border-4 border-primary/20 group-hover:border-primary/40 transition-colors">
                 {getInitials(member.name)}
               </div>
             )}
@@ -74,16 +75,18 @@ const MemberCard = ({ member, onView, onEdit, onContact }: MemberCardProps) => {
           <Eye className="w-4 h-4 mr-1" />
           View
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 hover:bg-secondary hover:text-secondary-foreground transition-colors"
-          onClick={onEdit}
-          aria-label={`Edit ${member.name}'s profile`}
-        >
-          <Edit className="w-4 h-4 mr-1" />
-          Edit
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 hover:bg-secondary hover:text-secondary-foreground transition-colors"
+            onClick={onEdit}
+            aria-label={`Edit ${member.name}'s profile`}
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

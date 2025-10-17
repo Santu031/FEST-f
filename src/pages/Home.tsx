@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,6 +25,80 @@ import gallery3 from "@/assets/gallery-3.jpg";
 import gallery4 from "@/assets/gallery-4.jpg";
 
 const Home = () => {
+  const [coreMembers, setCoreMembers] = useState<Array<{
+    name: string;
+    role: string;
+    photo?: string;
+  }>>([]);
+
+  const [testimonialMembers, setTestimonialMembers] = useState<Array<{
+    name: string;
+    role: string;
+    photo?: string;
+  }>>([]);
+
+  // Generic testimonial quotes
+  const testimonialQuotes = [
+    "Being part of this community has brought immense joy and purpose to my life. The devotion and teamwork during the festival is truly inspiring.",
+    "The way our Balaga brings people together in celebration and service is remarkable. Every year, we create memories that last a lifetime.",
+    "Serving the community through our festival celebrations has been a transformative experience filled with devotion and unity.",
+    "The bonds we form while organizing these events are invaluable. It's more than a festival, it's a family.",
+  ];
+
+  // Load members from API
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const data = await api.getMembers();
+        // Get first 3 members to display on home page
+        const topMembers = data.slice(0, 3).map((member) => ({
+          name: member.name,
+          role: member.role,
+          photo: member.photo,
+        }));
+        setCoreMembers(topMembers);
+
+        // Get 2 random members for testimonials (different from top 3)
+        const remainingMembers = data.slice(3);
+        const testimonials = remainingMembers
+          .sort(() => Math.random() - 0.5) // Shuffle
+          .slice(0, 2)
+          .map((member) => ({
+            name: member.name,
+            role: member.role,
+            photo: member.photo,
+          }));
+        
+        // If we don't have enough members, use from top members
+        if (testimonials.length < 2 && data.length >= 2) {
+          const fallbackTestimonials = data
+            .slice(-2)
+            .map((member) => ({
+              name: member.name,
+              role: member.role,
+              photo: member.photo,
+            }));
+          setTestimonialMembers(fallbackTestimonials);
+        } else {
+          setTestimonialMembers(testimonials);
+        }
+      } catch (error) {
+        console.error('Error loading members:', error);
+        // Fallback to default members if API fails
+        setCoreMembers([
+          { name: "Rajesh Kumar", role: "Coordinator", photo: "" },
+          { name: "Priya Sharma", role: "Cultural Organizer", photo: "" },
+          { name: "Amit Patel", role: "Sound Lead", photo: "" },
+        ]);
+        setTestimonialMembers([
+          { name: "Sneha Desai", role: "Volunteer", photo: "" },
+          { name: "Vikram Singh", role: "Logistics Manager", photo: "" },
+        ]);
+      }
+    };
+
+    fetchMembers();
+  }, []);
   const upcomingEvents = [
     {
       title: "Ganesh Chaturthi Celebration",
@@ -44,40 +120,7 @@ const Home = () => {
     },
   ];
 
-  const coreMembers = [
-    {
-      name: "Rajesh Kumar",
-      role: "Coordinator",
-      image: "",
-    },
-    {
-      name: "Priya Sharma",
-      role: "Cultural Organizer",
-      image: "",
-    },
-    {
-      name: "Amit Patel",
-      role: "Sound Lead",
-      image: "",
-    },
-  ];
-
   const galleryImages = [gallery1, gallery2, gallery3, gallery4];
-
-  const testimonials = [
-    {
-      quote:
-        "Being part of this community has brought immense joy and purpose to my life. The devotion and teamwork during the festival is truly inspiring.",
-      author: "Sneha Desai",
-      role: "Volunteer",
-    },
-    {
-      quote:
-        "The way our Balaga brings people together in celebration and service is remarkable. Every year, we create memories that last a lifetime.",
-      author: "Vikram Singh",
-      role: "Logistics Manager",
-    },
-  ];
 
   const getInitials = (name: string) => {
     return name
@@ -114,8 +157,7 @@ const Home = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8 drop-shadow-md">
-            Uniting devotion, culture, and community spirit every Ganesh
-            Festival
+            Chikkagunjal
           </p>
           <Button
             size="lg"
@@ -271,9 +313,9 @@ const Home = () => {
               >
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center space-y-4">
-                    {member.image ? (
+                    {member.photo ? (
                       <img
-                        src={member.image}
+                        src={member.photo}
                         alt={member.name}
                         className="w-32 h-32 rounded-full object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-colors"
                       />
@@ -374,7 +416,7 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
+            {testimonialMembers.map((member, index) => (
               <Card
                 key={index}
                 className="hover:shadow-warm transition-all duration-300 animate-slide-up"
@@ -385,13 +427,13 @@ const Home = () => {
                     <Music className="w-10 h-10 text-primary/30" />
                   </div>
                   <p className="text-muted-foreground leading-relaxed mb-6 italic">
-                    "{testimonial.quote}"
+                    "{testimonialQuotes[index] || testimonialQuotes[0]}"
                   </p>
                   <div className="border-t border-border pt-4">
                     <p className="font-bold text-foreground">
-                      {testimonial.author}
+                      {member.name}
                     </p>
-                    <p className="text-sm text-primary">{testimonial.role}</p>
+                    <p className="text-sm text-primary">{member.role}</p>
                   </div>
                 </CardContent>
               </Card>

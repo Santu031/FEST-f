@@ -65,10 +65,10 @@ const MemberDetailModal = ({
                 <img
                   src={member.photo}
                   alt={member.name}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-primary/20"
+                  className="w-40 h-40 rounded-full object-cover border-4 border-primary/20"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gradient-saffron flex items-center justify-center text-white text-4xl font-bold border-4 border-primary/20">
+                <div className="w-40 h-40 rounded-full bg-gradient-saffron flex items-center justify-center text-white text-5xl font-bold border-4 border-primary/20">
                   {getInitials(member.name)}
                 </div>
               )}

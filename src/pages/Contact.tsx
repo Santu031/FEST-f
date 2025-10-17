@@ -36,20 +36,20 @@ const Contact = () => {
     {
       icon: Phone,
       title: "Phone",
-      content: "+91 98765 43210",
-      link: "tel:+919876543210",
+      content: "+91 99724 33292",
+      link: "tel:+919972433292",
     },
     {
       icon: Mail,
       title: "Email",
-      content: "info@balagha.org",
-      link: "mailto:info@balagha.org",
+      content: "santoshhiretanad292@gmail.com",
+      link: "mailto:santoshhiretanad292@gmail.com",
     },
     {
       icon: MapPin,
       title: "Address",
-      content: "Baghat, Solan, Himachal Pradesh, India",
-      link: "https://maps.google.com",
+      content: "Chikgunjul, Karnataka 581117, India",
+      link: "https://maps.app.goo.gl/gCrEYQ9RtTVrHqYNA",
     },
     {
       icon: Clock,
@@ -210,7 +210,7 @@ const Contact = () => {
                 </h2>
                 <div className="aspect-video rounded-lg overflow-hidden bg-muted">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13736.845631234567!2d77.0877!3d30.9304!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390f7f4e4c8c5c5f%3A0x4c8c5c5f4c8c5c5f!2sBaghat%2C%20Solan%2C%20Himachal%20Pradesh!5e0!3m2!1sen!2sin!4v1234567890"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3849.627966825852!2d75.4088051!3d15.233512699999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb91fed9e3502d1%3A0x76fc9f90cd638b0a!2sChikkagunjal!5e0!3m2!1sen!2sin!4v1760635985577!5m2!1sen!2sin"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
