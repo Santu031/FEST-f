@@ -13,6 +13,15 @@ interface Member {
   responsibilities?: string[];
 }
 
+interface GalleryPhoto {
+  _id?: string;
+  src: string;
+  alt: string;
+  category: string;
+  uploadedBy?: string;
+  uploadedAt?: string;
+}
+
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
@@ -112,8 +121,26 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  // Gallery methods
+  async getGalleryPhotos(): Promise<GalleryPhoto[]> {
+    return this.request('/gallery');
+  }
+
+  async uploadGalleryPhoto(photo: Omit<GalleryPhoto, '_id' | 'uploadedBy' | 'uploadedAt'>): Promise<GalleryPhoto> {
+    return this.request('/gallery', {
+      method: 'POST',
+      body: JSON.stringify(photo),
+    });
+  }
+
+  async deleteGalleryPhoto(id: string): Promise<{ success: boolean }> {
+    return this.request(`/gallery/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Export singleton instance
 export const api = new ApiClient(API_URL);
-export type { Member };
+export type { Member, GalleryPhoto };

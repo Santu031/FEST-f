@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { X, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { api, type GalleryPhoto } from "@/lib/api";
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
 import gallery3 from "@/assets/gallery-3.jpg";
@@ -27,29 +28,27 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [customPhotos, setCustomPhotos] = useState<
-    Array<{ src: string; alt: string; category: string }>
-  >([]);
+  const [customPhotos, setCustomPhotos] = useState<GalleryPhoto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { isAdmin } = useAuth();
 
-  // Load custom photos from localStorage
+  // Load custom photos from database
   useEffect(() => {
-    const stored = localStorage.getItem("galleryCustomPhotos");
-    if (stored) {
+    const fetchPhotos = async () => {
       try {
-        setCustomPhotos(JSON.parse(stored));
+        setIsLoading(true);
+        const photos = await api.getGalleryPhotos();
+        setCustomPhotos(photos);
       } catch (error) {
-        console.error("Error loading custom photos:", error);
+        console.error("Error loading gallery photos:", error);
+        toast.error("Failed to load gallery photos");
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, []);
+    };
 
-  // Save custom photos to localStorage whenever they change
-  useEffect(() => {
-    if (customPhotos.length > 0) {
-      localStorage.setItem("galleryCustomPhotos", JSON.stringify(customPhotos));
-    }
-  }, [customPhotos]);
+    fetchPhotos();
+  }, []);
 
   const galleryImages = [
     { src: heroGanesh, alt: "Lord Ganesha idol", category: "idol" },
@@ -71,19 +70,31 @@ const Gallery = () => {
     ...customPhotos, // Include custom uploaded photos
   ];
 
-  const handlePhotoUpload = (photo: {
+  const handlePhotoUpload = async (photo: {
     src: string;
     alt: string;
     category: string;
   }) => {
-    setCustomPhotos([...customPhotos, photo]);
+    try {
+      const newPhoto = await api.uploadGalleryPhoto(photo);
+      setCustomPhotos([...customPhotos, newPhoto]);
+      toast.success("Photo uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error("Failed to upload photo");
+    }
   };
 
-  const handleDeletePhoto = (index: number) => {
-    const updatedPhotos = customPhotos.filter((_, i) => i !== index);
-    setCustomPhotos(updatedPhotos);
-    localStorage.setItem("galleryCustomPhotos", JSON.stringify(updatedPhotos));
-    toast.success("Photo deleted successfully");
+  const handleDeletePhoto = async (id: string) => {
+    try {
+      await api.deleteGalleryPhoto(id);
+      const updatedPhotos = customPhotos.filter((photo) => photo._id !== id);
+      setCustomPhotos(updatedPhotos);
+      toast.success("Photo deleted successfully");
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      toast.error("Failed to delete photo");
+    }
   };
 
   // Check if an image is a custom uploaded photo
@@ -91,9 +102,9 @@ const Gallery = () => {
     return customPhotos.some((photo) => photo.src === imageSrc);
   };
 
-  // Get custom photo index
-  const getCustomPhotoIndex = (imageSrc: string) => {
-    return customPhotos.findIndex((photo) => photo.src === imageSrc);
+  // Get custom photo by src
+  const getCustomPhotoBySrc = (imageSrc: string) => {
+    return customPhotos.find((photo) => photo.src === imageSrc);
   };
 
   const categories = [
@@ -162,48 +173,59 @@ const Gallery = () => {
       {/* Gallery Grid */}
       <section className="pb-16 px-4">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredImages.map((image, index) => {
-              const isCustom = isCustomPhoto(image.src);
-              const customIndex = isCustom ? getCustomPhotoIndex(image.src) : -1;
-              
-              return (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, index) => (
                 <div
                   key={index}
-                  className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer animate-fade-in shadow-warm hover:shadow-gold transition-all"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => setSelectedImage(image.src)}
-                >
-                  <img
-                    src={image.src}
-                    alt={image.alt}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  
-                  {/* Photo Description Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                    <p className="text-white font-medium">{image.alt}</p>
+                  className="aspect-square rounded-2xl overflow-hidden bg-muted animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredImages.map((image, index) => {
+                const customPhoto = getCustomPhotoBySrc(image.src);
+                const isCustom = !!customPhoto;
+                
+                return (
+                  <div
+                    key={index}
+                    className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer animate-fade-in shadow-warm hover:shadow-gold transition-all"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => setSelectedImage(image.src)}
+                  >
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    
+                    {/* Photo Description Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <p className="text-white font-medium">{image.alt}</p>
+                    </div>
+                    
+                    {/* Admin Delete Button - Only for custom uploaded photos */}
+                    {isAdmin && isCustom && customPhoto?._id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm("Are you sure you want to delete this photo?")) {
+                            handleDeletePhoto(customPhoto._id!);
+                          }
+                        }}
+                        className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:scale-110 z-10"
+                        aria-label="Delete photo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
-                  
-                  {/* Admin Delete Button - Only for custom uploaded photos */}
-                  {isAdmin && isCustom && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (window.confirm("Are you sure you want to delete this photo?")) {
-                          handleDeletePhoto(customIndex);
-                        }
-                      }}
-                      className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:scale-110 z-10"
-                      aria-label="Delete photo"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
