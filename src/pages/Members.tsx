@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, UserPlus, Download, Loader2, RotateCcw } from "lucide-react";
+import { Search, Filter, UserPlus, Download, Loader2, RotateCcw, Trash2 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, type Member } from "@/lib/api";
@@ -123,6 +123,12 @@ const Members = () => {
     } catch (error) {
       console.error('Error deleting member:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete member');
+    }
+  };
+
+  const confirmDeleteMember = (member: Member) => {
+    if (confirm(`Are you sure you want to delete ${member.name}? This action cannot be undone.`)) {
+      handleDeleteMember(member.id);
     }
   };
 
@@ -332,6 +338,7 @@ const Members = () => {
                     onView={() => handleViewMember(member)}
                     onEdit={() => handleEditMember(member)}
                     onContact={() => handleContact(member)}
+                    onDelete={() => confirmDeleteMember(member)}
                     isAdmin={isAdmin}
                   />
                 </div>
@@ -362,6 +369,11 @@ const Members = () => {
         onEdit={() => {
           if (selectedMember) {
             handleEditMember(selectedMember);
+          }
+        }}
+        onDelete={() => {
+          if (selectedMember) {
+            confirmDeleteMember(selectedMember);
           }
         }}
         showContact={!maskPhone}

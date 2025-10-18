@@ -6,7 +6,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Calendar, Briefcase, X, Edit } from "lucide-react";
+import { Mail, Phone, Calendar, Briefcase, X, Edit, Trash2 } from "lucide-react";
 
 interface Member {
   id: string;
@@ -25,6 +25,7 @@ interface MemberDetailModalProps {
   open: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   showContact?: boolean;
   isAdmin?: boolean;
 }
@@ -34,6 +35,7 @@ const MemberDetailModal = ({
   open,
   onClose,
   onEdit,
+  onDelete,
   showContact = true,
   isAdmin = true,
 }: MemberDetailModalProps) => {
@@ -149,10 +151,20 @@ const MemberDetailModal = ({
             Close
           </Button>
           {isAdmin && (
-            <Button onClick={onEdit} className="bg-gradient-saffron hover:opacity-90">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={onDelete}
+                className="hover:opacity-90"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+              <Button onClick={onEdit} className="bg-gradient-saffron hover:opacity-90">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
           )}
         </DialogFooter>
       </DialogContent>

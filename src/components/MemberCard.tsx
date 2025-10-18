@@ -1,4 +1,4 @@
-import { User, Mail, Phone, Eye, Edit } from "lucide-react";
+import { User, Mail, Phone, Eye, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
@@ -16,10 +16,11 @@ interface MemberCardProps {
   onView: () => void;
   onEdit: () => void;
   onContact: () => void;
+  onDelete: () => void;
   isAdmin?: boolean;
 }
 
-const MemberCard = ({ member, onView, onEdit, onContact, isAdmin = false }: MemberCardProps) => {
+const MemberCard = ({ member, onView, onEdit, onContact, onDelete, isAdmin = false }: MemberCardProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -76,16 +77,31 @@ const MemberCard = ({ member, onView, onEdit, onContact, isAdmin = false }: Memb
           View
         </Button>
         {isAdmin && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 hover:bg-secondary hover:text-secondary-foreground transition-colors"
-            onClick={onEdit}
-            aria-label={`Edit ${member.name}'s profile`}
-          >
-            <Edit className="w-4 h-4 mr-1" />
-            Edit
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 hover:bg-secondary hover:text-secondary-foreground transition-colors"
+              onClick={onEdit}
+              aria-label={`Edit ${member.name}'s profile`}
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              aria-label={`Delete ${member.name}'s profile`}
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </>
         )}
         <Button
           variant="outline"
