@@ -52,7 +52,7 @@ const Navbar = () => {
             </div>
             <div className="hidden md:block">
               <h1 className="text-lg font-bold text-foreground">
-                Baghat Sing Geleyar Balaga
+                Bhagat Singh Geleyar Balaga
               </h1>
               <p className="text-xs text-muted-foreground">
                 Ganesh Festival Community

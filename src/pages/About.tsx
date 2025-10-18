@@ -48,7 +48,7 @@ const About = () => {
           <div className="prose prose-lg mx-auto">
             <h2 className="text-3xl font-bold text-foreground mb-6">Our Story</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Baghat Sing Geleyar Balaga was founded with a vision to celebrate the
+              Bhagat Singh Geleyar Balaga was founded with a vision to celebrate the
               auspicious Ganesh Festival in a grand and meaningful way. What started
               as a small community gathering has grown into one of the most cherished
               annual celebrations in Baghat, Solan.

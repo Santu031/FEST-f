@@ -119,7 +119,7 @@ const Footer = () => {
             <p className="text-xs text-muted-foreground pt-4">
               Made with devotion by
               <br />
-              Baghat Sing Geleyar Balaga
+              Bhagat Singh Geleyar Balaga
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Baghat Sing Geleyar Balaga. All rights
+            © {new Date().getFullYear()} Bhagat Singh Geleyar Balaga. All rights
             reserved.
           </p>
         </div>

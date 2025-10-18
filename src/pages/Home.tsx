@@ -153,7 +153,7 @@ const Home = () => {
             Welcome to
             <br />
             <span className="bg-gradient-gold bg-clip-text text-transparent">
-              Baghat Sing Geleyar Balaga
+              Bhagat Singh Geleyar Balaga
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8 drop-shadow-md">
@@ -193,7 +193,7 @@ const Home = () => {
                 Tradition, Devotion & Unity
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Baghat Sing Geleyar Balaga has been at the heart of our
+                Bhagat Singh Geleyar Balaga has been at the heart of our
                 community's Ganesh Festival celebrations for decades. We bring
                 together devotees, volunteers, and families to honor Lord
                 Ganesha with grand festivities, cultural programs, and
