@@ -1,22 +1,16 @@
-# Welcome to your Lovable project
+# Festival Management Application
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/000d9ae7-11d0-4fb6-ab7f-bb0c4cc54c3d
+This is a festival management application built with modern web technologies.
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/000d9ae7-11d0-4fb6-ab7f-bb0c4cc54c3d) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+You can clone this repo and push changes. Pushed changes will be reflected in your deployed application.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -62,12 +56,14 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/000d9ae7-11d0-4fb6-ab7f-bb0c4cc54c3d) and click on Share -> Publish.
+You can deploy this project to Vercel or any other hosting platform that supports static sites.
 
-## Can I connect a custom domain to my Lovable project?
+For Vercel:
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure the build settings if needed
+4. Deploy!
 
-Yes, you can!
+## Can I connect a custom domain?
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Yes, you can connect a custom domain to your deployed application. The process varies depending on your hosting provider.
